@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from gensim.models import word2vec
+from gensim.models import TfidfModel
+from gensim.corpora import Dictionary
 import re
 import string as st
 
@@ -43,18 +45,21 @@ def one_hot(df):
 
 def w2v(df, method='tfidf', fweights='w2v_weights'):
     tweets = df["Tweet"].copy()
+    sentences = [sent.split(' ') for sent in tweets.tolist()]
     if Path(fweights).exists():
         model = word2vec.Word2Vec.load(fweights)
     else:
-        sentences = df["Tweet"].tolist()
         model = word2vec.Word2Vec(sentences, min_count=1)
-    if method == ' avg':
-        out = np.array([np.average([model.wv[word] for word in entry.split(' ')], axis=0) for entry in tweets])
+    if method == 'avg':
+        out = [np.average([model.wv[word] for word in entry.split(' ')], axis=0) for entry in tweets]
     elif method == 'tfidf':
-        pass        # TODO
+        corpus = [Dictionary(sentences).doc2bow(tweet)for tweet in sentences]
+        tf_idf = TfidfModel(corpus, dictionary=Dictionary(sentences))
+        out = [np.average([idf * model.wv[tf_idf.id2word[i]] for i, idf in tf_idf[corpus[tweet_id]]], axis=0)
+               for tweet_id in range(len(tweets))]
     else:
         raise RuntimeError(f"Method '{method}' not supported")
-    return out
+    return np.array(out)
 
 
 def GloVe():
