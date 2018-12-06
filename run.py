@@ -1,26 +1,38 @@
 from data_processing import *
 from classification import *
+from config import num_tweets
+import warnings
+warnings.filterwarnings("ignore")
 
-# gets tweet data as dataframe
-df = load_data(num_rows=2000)
-# gets the list of labels, y
+# Gets tweet data as dataframe
+df = load_data(num_rows=num_tweets)
+# Gets the labels, y
 sample_labels = df.get('Party')
 
-# we represent the words in 3 different ways: one-hot, word2vec, and glove
-one_hot_data = one_hot(df)
-w2v_data = w2v(df, method='tfidf')
-#glove_data = glove(df)
-datas = [one_hot_data
-    , w2v_data
-    #, glove_data
-         ]
+embeddings = \
+    {
+        "One hot": one_hot(df)
+        , "Word2Vec tfidf": w2v(df, method='tfidf')
+        , "Word2Vec average": w2v(df, method='avg')
+        # , "GloVe": glove(df)
+    }
+classifiers = \
+    {
+        "KNN": KNN
+        , "SVM": SVM
+    }
 
-# for each of the 3 representations of the data, we perform classification
-# using 4 different methods: KNN, SVM, LSVM, and RNN
-for data in datas:
-    KNN(data, sample_labels, 40)
-    SVM(data, sample_labels)
-    #RNN(data, sample_labels)
-    #LSVM(data, sample_labels)
+print("\n********** Running grid search on all models to find best parameters **********\n")
+models = dict()
+for classifier in classifiers.keys():
+    print(f"\nTesting classifer '{classifier}'")
+    for embedding in embeddings.keys():
+        print(f"Testing embedding '{embedding}'")
+        models[embedding + ' with ' + classifier] = classifiers[classifier](embeddings[embedding], sample_labels)
+print("\n********** Grid search finished! **********\n")
 
-pass
+print("Results:\n")
+for model_name, model in models.items():
+    print(f"Accuracy for {model_name}: {model.best_score_*100}%")
+    # TODO display nice plots using model.cv_results_
+

@@ -22,6 +22,7 @@ def load_data(fpath = Path(__file__).resolve().parent / 'data' / 'ExtractedTweet
                             u"\U0001F680-\U0001F6FF"  # transport & map symbols
                             u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
                             "]+", flags=re.UNICODE)
+
         punctuation = (st.punctuation.replace('@', '').replace('#', '')) + '"' + "'" + '”' + '“' + '‘'
         trans = str.maketrans('', '', punctuation)
         string = str(string).lower()
