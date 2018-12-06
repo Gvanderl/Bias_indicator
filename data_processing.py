@@ -9,7 +9,12 @@ import string as st
 
 
 def load_data(fpath = Path(__file__).resolve().parent / 'data' / 'ExtractedTweets.csv', num_rows=0):
-
+    """
+    Loads, cleans and returns the twitter dataset
+    :param fpath: path to the csv file
+    :param num_rows: number of rows to be randomly extracted, defines the size of the returned dataset
+    :return: cleaned dataset of size num_rows
+    """
     def clean(string):
         emojis = re.compile("["
                             u"\U0001F600-\U0001F64F"  # emoticons
@@ -40,16 +45,24 @@ def load_data(fpath = Path(__file__).resolve().parent / 'data' / 'ExtractedTweet
 
 
 def one_hot(df):
+    """
+    Performs one hot encoding on the dataset
+    :param df: dataset of tweets to pass to the function
+    :return: Dataset in one hot form
+    """
     return df["Tweet"].str.get_dummies(' ')
 
 
-def w2v(df, method='tfidf', fweights='w2v_weights'):
+def w2v(df, method='tfidf'):
+    """
+    performs word2vec on the dataset
+    :param df: dataframe of tweets
+    :param method: either avg of tfidf
+    :return: new dataset with w2v applied
+    """
     tweets = df["Tweet"].copy()
     sentences = [sent.split(' ') for sent in tweets.tolist()]
-    if Path(fweights).exists():
-        model = word2vec.Word2Vec.load(fweights)
-    else:
-        model = word2vec.Word2Vec(sentences, min_count=1)
+    model = word2vec.Word2Vec(sentences, min_count=1)
     if method == 'avg':
         out = [np.average([model.wv[word] for word in entry.split(' ')], axis=0) for entry in tweets]
     elif method == 'tfidf':

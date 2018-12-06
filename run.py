@@ -2,7 +2,7 @@ from data_processing import *
 from classification import *
 
 # gets tweet data as dataframe
-df = load_data(num_rows=100)
+df = load_data(num_rows=2000)
 # gets the list of labels, y
 sample_labels = df.get('Party')
 
@@ -10,7 +10,10 @@ sample_labels = df.get('Party')
 one_hot_data = one_hot(df)
 w2v_data = w2v(df, method='tfidf')
 #glove_data = glove(df)
-datas = [one_hot_data, w2v_data, glove_data]
+datas = [one_hot_data
+    , w2v_data
+    #, glove_data
+         ]
 
 # for each of the 3 representations of the data, we perform classification
 # using 4 different methods: KNN, SVM, LSVM, and RNN

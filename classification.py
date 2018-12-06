@@ -10,9 +10,15 @@ from sklearn.svm import SVC
 
 # https://stackabuse.com/k-nearest-neighbors-algorithm-in-python-and-scikit-learn/
 def KNN(x, y, num_ks=10, test_size=0.20, n_neighbors=5):
-    # x is nxk array of processed tweet data (n tweets, k features)
-    # y is list of n party labels (dem or rep)
-    # num_ks: number of k-values to test (see which gets best error rate)
+    """
+    Performs KNN classification on the data
+    :param x: nxk array of processed tweet data (n tweets, k features)
+    :param y: list of n party labels (dem or rep)
+    :param num_ks: number of k-values to test (see which gets best error rate)
+    :param test_size: for corss validation
+    :param n_neighbors: for KNN
+    :return:
+    """
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)  
     classifier = KNeighborsClassifier(n_neighbors=n_neighbors)  
     classifier.fit(x_train, y_train)  
@@ -41,9 +47,14 @@ def LSVM():
 
 
 def SVM(x, y, test_size=0.20):
-    # x is nxk array of processed tweet data (n tweets, k features)
-    # y is list of n party labels (dem or rep))
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)  
+    """
+    Performs SVM classification on the data
+    :param x: nxk array of processed tweet data (n tweets, k features)
+    :param y: list of n party labels (dem or rep))
+    :param test_size: For crossvalidation
+    :return:
+    """
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
     svclassifier = SVC(kernel='linear')  
     svclassifier.fit(x_train, y_train) 
     y_pred = svclassifier.predict(x_test)  
