@@ -4,6 +4,8 @@ from pathlib import Path
 from gensim.models import word2vec
 from gensim.models import TfidfModel
 from gensim.corpora import Dictionary
+from glove import Glove
+from glove import Corpus
 import re
 import string as st
 
@@ -76,5 +78,14 @@ def w2v(df, method='tfidf'):
     return np.array(out)
 
 
-def GloVe():
+def GloVe(df):
+    tweets = df["Tweet"].copy()
+    sentences = [sent.split(' ') for sent in tweets.tolist()]
+    corpus = Corpus()
+    corpus.fit(sentences, window = 10)
+    glove = Glove(no_components = 100, learning_rate = 0.05)
+    glove.fit(corpus.matrix, epochs = 30, no_threads = 4, verbose = True)
+
+    ## need to find way to get vector representation of words in tweet
+
     pass
