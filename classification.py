@@ -40,7 +40,7 @@ def LSVM():
     pass
 
 
-def SVM():
+def SVM(x, y, test_size=0.20):
     # x is nxk array of processed tweet data (n tweets, k features)
     # y is list of n party labels (dem or rep))
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)  
@@ -48,7 +48,7 @@ def SVM():
     svclassifier.fit(x_train, y_train) 
     y_pred = svclassifier.predict(x_test)  
     print(confusion_matrix(y_test,y_pred))  
-    print(classification_report(y_test,y_pred))
+    print(classification_report(y_test,y_pred))  
 
 
 def RNN():
