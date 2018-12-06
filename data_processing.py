@@ -78,13 +78,31 @@ def w2v(df, method='tfidf'):
     return np.array(out)
 
 
-def GloVe(df):
+def GloVe(df, GLOVE_DIM):
     tweets = df["Tweet"].copy()
     sentences = [sent.split(' ') for sent in tweets.tolist()]
-    corpus = Corpus()
-    corpus.fit(sentences, window = 10)
-    glove = Glove(no_components = 100, learning_rate = 0.05)
-    glove.fit(corpus.matrix, epochs = 30, no_threads = 4, verbose = True)
+    glove_file = 'glove.twitter.27B.' + str(GLOVE_DIM) + 'd.txt'
+    #creating vector dictionary for words
+    emb_dict = {}
+    glove = open(input_path / glove_file)
+    for line in glove:
+        values = line.split()
+        word = values[0]
+        vector = np.asarray(values[1:], dtype='float32')
+        emb_dict[word] = vector
+    glove.close()
+
+    sentence_matrix = np.zeroes((df.Length, GLOVE_DIM))
+    for i in range(0, len(sentences)):
+        word_matrix = np.zeroes((len(sentences),GLOVE_DIM))
+        for j in range(0, len(sentences)):
+            vectorized_word = emb_dict[sentences[i][j]]
+            if vectorized_word is not None:
+                word_matrix[j] = vectorized_word
+        avg_vector = np.mean(word_matrix)
+       sentence_matrix[i] = avg_vector
+    return (sentence_matrix)
+
 
     ## need to find way to get vector representation of words in tweet
 
