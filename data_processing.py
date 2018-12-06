@@ -106,4 +106,3 @@ def GloVe(df, GLOVE_DIM):
 
     ## need to find way to get vector representation of words in tweet
 
-    pass
