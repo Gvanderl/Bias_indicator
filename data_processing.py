@@ -4,19 +4,32 @@ from pathlib import Path
 from gensim.models import word2vec
 from gensim.models import TfidfModel
 from gensim.corpora import Dictionary
-from glove import Glove
-from glove import Corpus
 import re
 import string as st
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import nltk
+nltk.download('stopwords')
+nltk.download('punkt')
 
 
-def load_data(fpath = Path(__file__).resolve().parent / 'data' / 'ExtractedTweets.csv', num_rows=0):
+def remove_stopwords(raw_text):
+    stops = set(stopwords.words("english"))
+    text = word_tokenize(raw_text)
+    text = [w for w in text if not w in stops and len(w) >= 3]
+    return text
+
+
+def load_data(fpath=Path(__file__).resolve().parent / 'data' / 'ExtractedTweets.csv', num_rows=0):
     """
     Loads, cleans and returns the twitter dataset
     :param fpath: path to the csv file
     :param num_rows: number of rows to be randomly extracted, defines the size of the returned dataset
     :return: cleaned dataset of size num_rows
     """
+
     def clean(string):
         emojis = re.compile("["
                             u"\U0001F600-\U0001F64F"  # emoticons
@@ -69,7 +82,7 @@ def w2v(df, method='tfidf'):
     if method == 'avg':
         out = [np.average([model.wv[word] for word in entry.split(' ')], axis=0) for entry in tweets]
     elif method == 'tfidf':
-        corpus = [Dictionary(sentences).doc2bow(tweet)for tweet in sentences]
+        corpus = [Dictionary(sentences).doc2bow(tweet) for tweet in sentences]
         tf_idf = TfidfModel(corpus, dictionary=Dictionary(sentences))
         out = [np.average([idf * model.wv[tf_idf.id2word[i]] for i, idf in tf_idf[corpus[tweet_id]]], axis=0)
                for tweet_id in range(len(tweets))]
@@ -78,31 +91,33 @@ def w2v(df, method='tfidf'):
     return np.array(out)
 
 
-def GloVe(df, GLOVE_DIM):
-    tweets = df["Tweet"].copy()
-    sentences = [sent.split(' ') for sent in tweets.tolist()]
-    glove_file = 'glove.twitter.27B.' + str(GLOVE_DIM) + 'd.txt'
-    #creating vector dictionary for words
-    emb_dict = {}
-    glove = open(input_path / glove_file)
-    for line in glove:
+def GloVe(df):
+    embedding_index = dict()
+    fpath = Path(__file__).resolve().parent / 'data' / 'glove.twitter.27B.25d.txt'
+    f = open(fpath.as_posix())
+    for line in f:
         values = line.split()
         word = values[0]
-        vector = np.asarray(values[1:], dtype='float32')
-        emb_dict[word] = vector
-    glove.close()
+        coef = np.asarray(values[1:], dtype='float32')
+        embedding_index[word] = coef
+    f.close()
 
-    sentence_matrix = np.zeroes((df.Length, GLOVE_DIM))
-    for i in range(0, len(sentences)):
-        word_matrix = np.zeroes((len(sentences),GLOVE_DIM))
-        for j in range(0, len(sentences)):
-            vectorized_word = emb_dict[sentences[i][j]]
-            if vectorized_word is not None:
-                word_matrix[j] = vectorized_word
-        avg_vector = np.mean(word_matrix)
-       sentence_matrix[i] = avg_vector
-    return (sentence_matrix)
+    vocabulary_size = 50000
+    tokenizer = Tokenizer(num_words=vocabulary_size)
 
+    df["Tweet"] = df["Tweet"].map(lambda x: remove_stopwords(x))
+    df = df.sample(frac=1).reset_index(drop=True)  # shuffles dataset
+    tokenizer.fit_on_texts(df["Tweet"])
+    sequences = tokenizer.texts_to_sequences(df["Tweet"])
+    data = pad_sequences(sequences, maxlen=140)
 
-    ## need to find way to get vector representation of words in tweet
+    embedding_matrix = np.zeros((vocabulary_size, 25))
+    for word, index in tokenizer.word_index.items():
+        if index > vocabulary_size - 1:
+            break
+        else:
+            embedding_vector = embedding_index.get(word)
+            if embedding_vector is not None:
+                embedding_matrix[index] = embedding_vector
 
+    return pd.DataFrame(data, df["Party"])
