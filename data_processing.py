@@ -92,6 +92,11 @@ def w2v(df, method='tfidf'):
 
 
 def GloVe(df):
+    """
+    GloVe encoding on the dataset
+    :param df: pandas dataframe
+    :return: changed dataframe
+    """
     embedding_index = dict()
     fpath = Path(__file__).resolve().parent / 'data' / 'glove.twitter.27B.25d.txt'
     f = open(fpath.as_posix())

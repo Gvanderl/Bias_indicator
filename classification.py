@@ -38,6 +38,12 @@ def SVM(x, y):
 
 
 def LSTM_model(x, y):
+    """
+    Creates and trains LSTM model
+    :param x: Features
+    :param y: Labels
+    :return: trained model
+    """
 
     def labeler(party):
         if party == "Democrat":
