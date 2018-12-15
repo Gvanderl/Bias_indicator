@@ -34,7 +34,7 @@ embeddings = \
         "One hot": one_hot(df)
         , "Word2Vec average": w2v(df, method='avg')
         , "Word2Vec tfidf": w2v(df, method='tfidf')
-        , "GloVe": GloVe(df)
+        # , "GloVe": GloVe(df)
     }
 classifiers = \
     {
